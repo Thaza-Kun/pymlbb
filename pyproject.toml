@@ -1,0 +1,23 @@
+[project]
+name = "pymlbb"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+[tool.uv.workspace]
+members = [
+    "scraper",
+    "dashboard",
+    "api",
+]
+
+# [tool.uv]
+# required-environments = [
+#     "sys_platform == 'linux' and platform_machine == 'x86_64'",
+# ]
+
+[tool.ty.environment]
+python = "./.venv"

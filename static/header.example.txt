@@ -1,0 +1,15 @@
+GET /actgateway/battlereport/season/list HTTP/2
+Host: app.web.moontontech.com
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:150.0) Gecko/20100101 Firefox/150.0
+Accept: application/json, text/plain, */*
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br, zstd
+Referer: https://www.mobilelegends.com/
+X-Token: 0i0kokj90jpio.mkou897ujokj98uiojk.jihf35i213l-089i9iuhty6
+X-Lang: en
+Origin: https://www.mobilelegends.com
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+Connection: keep-alive
+TE: trailers

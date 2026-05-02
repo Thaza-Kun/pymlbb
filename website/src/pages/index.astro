@@ -1,0 +1,43 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const API_URL = import.meta.env.API_URL;
+
+const heroes_response = await fetch(`${API_URL}/list/heroes`);
+const heroes = await heroes_response.json();
+const image_response = async (hero, path) =>
+    await fetch(`${API_URL}/${path}/${hero}`)
+        .then((i) => i.blob())
+        .then((i) => i.bytes())
+        .then((i) => i.toBase64());
+const HERO_NAME = heroes[0].name;
+const image_matchup = await image_response(HERO_NAME, "matchup");
+const image_teamup = await image_response(HERO_NAME, "teamup");
+---
+
+<Layout>
+    <h1>{HERO_NAME}</h1>
+    <select id="hero-select">
+        {
+            heroes.map((h) => (
+                <option
+                    value={h.name}
+                    selected={h.name == HERO_NAME ? "selected" : ""}
+                >
+                    {h.name}
+                </option>
+            ))
+        }
+    </select>
+    <br />
+
+    <img id="img-matchup" src={`data:image/jpeg;base64,${image_matchup}`} />
+    <img id="img-teamup" src={`data:image/jpeg;base64,${image_teamup}`} />
+</Layout>
+
+<script>
+    const selectElement = document.querySelector("#hero-select");
+    selectElement?.addEventListener("change", (event) => {
+        window.location = `dashboard/${selectElement.value}`;
+    });
+</script>
