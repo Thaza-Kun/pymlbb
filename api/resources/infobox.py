@@ -20,10 +20,10 @@ class Infobox:
     users: list[UserInfo] | None = None
 
 
-def fetch_info_for_hero_with_users(
+async def fetch_info_for_hero_with_users(
     driver: Sqlite, hero: str, users: list[str]
 ) -> Infobox:
-    driver.cursor.execute(
+    cursor = await driver.conn.execute(
         "SELECT"
         "   h.name as hero_name,"
         "   username,"
@@ -49,7 +49,7 @@ def fetch_info_for_hero_with_users(
         hero_winrate,
         user_winrate,
         user_hero_winrate,
-    ) in driver.cursor.fetchall():
+    ) in await cursor.fetchall():
         if not infobox:
             infobox = Infobox(hero_name=hero_name, winrate=hero_winrate)
         if username in users:

@@ -1,11 +1,20 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import Layout from "../../../layouts/Layout.astro";
+
+export const prerender = false;
 
 const API_URL = import.meta.env.API_URL;
-const HERO_NAME = Astro.url.pathname.split("/").findLast((a) => a);
+
+const { user, hero } = Astro.params;
+const HERO_NAME = hero;
 
 const heroes_response = await fetch(`${API_URL}/list/heroes`);
 const heroes = await heroes_response.json();
+
+if (!heroes.map((h) => h.name).includes(HERO_NAME)) {
+    return Astro.rewrite("dashboard/404");
+}
+
 const image_response = async (hero, path) =>
     await fetch(`${API_URL}/${path}/${hero}`)
         .then((i) => i.blob())
@@ -13,10 +22,28 @@ const image_response = async (hero, path) =>
         .then((i) => i.toBase64());
 const image_matchup = await image_response(HERO_NAME, "matchup");
 const image_teamup = await image_response(HERO_NAME, "teamup");
+const infodata = await fetch(`${API_URL}/user/${user}/${HERO_NAME}`).then((d) =>
+    d.json(),
+);
+const hero_data = heroes.filter((h) => h.name == HERO_NAME);
 ---
 
 <Layout>
-    <h1>{HERO_NAME}</h1>
+    <img src={hero_data[0].image} />
+    <h1>
+        {`${HERO_NAME} (${infodata.winrate.toFixed(2)}%)`}
+    </h1>
+    <p>
+        {
+            `${user}: ` +
+                infodata.users
+                    .filter((i) => i.username == user)
+                    .map(
+                        (d) =>
+                            `(${d.hero_winrate.toFixed(2)} %/${d.winrate.toFixed(2)}% )`,
+                    )
+        }
+    </p>
     <select id="hero-select">
         {
             heroes.map((h) => (

@@ -14,13 +14,13 @@ from resources.matchups import fetch_matchup_winrate_for, Matchup
 from resources.matchups import fetch_teamup_winrate_for, Teamup
 from resources.normalizer import image_url_to_filename
 from graphs.winrate_vs_x import plot_win_pick
-# from resources.infobox import fetch_info_for_hero_with_users, Infobox
+from resources.infobox import fetch_info_for_hero_with_users, Infobox
 
 app = FastAPI()
 
 
 async def get_sqlite():
-    engine = Sqlite(path=Path("../static/mlbb.example.sqlite"))
+    engine = Sqlite(path=Path("/static/mlbb.sqlite"))
     async with engine as db:
         yield db
 
@@ -31,6 +31,11 @@ SqliteSession = Annotated[Sqlite, Depends(get_sqlite)]
 @app.get("/list/heroes")
 async def list_heroes(db: SqliteSession) -> List[Hero]:
     return await fetch_heroes(db, order_by="name")
+
+
+@app.get("/user/{user}/{hero}")
+async def get_user_hero_info(db: SqliteSession, user: str, hero: str) -> Infobox:
+    return await fetch_info_for_hero_with_users(db, hero, [user])
 
 
 HeroList = Annotated[List[Hero], Depends(list_heroes)]
@@ -48,7 +53,7 @@ async def get_matchup_for(
     y = [m.win_delta for m in matchup]
     images = [
         Image.open(
-            Path("../asset")
+            Path("/asset")
             / (image_url_to_filename(hero_name_to_heroes[m.against].image) + ".png")
         )
         for m in matchup
@@ -84,7 +89,7 @@ async def get_teamups_for(
     y = [m.win_delta for m in matchup]
     images = [
         Image.open(
-            Path("../asset")
+            Path("/asset")
             / (image_url_to_filename(hero_name_to_heroes[m.teamup].image) + ".png")
         )
         for m in matchup
