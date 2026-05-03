@@ -1,0 +1,59 @@
+---
+interface Props {
+    width?: string;
+    height?: string;
+    options?: Record<string, any>;
+}
+
+const { width = "100%", height = "400px", options = {} } = Astro.props;
+
+// Generate a unique ID for this chart instance
+const chartId = `echart-${Math.random().toString(36).substring(2, 11)}`;
+
+// Default chart options if none provided
+const defaultOptions = {
+    title: {
+        text: "ECharts Example",
+    },
+    tooltip: {},
+    xAxis: {
+        data: ["A", "B", "C", "D", "E"],
+    },
+    yAxis: {},
+    series: [
+        {
+            name: "Sales",
+            type: "bar",
+            data: [5, 20, 36, 10, 10],
+        },
+    ],
+};
+
+// Merge provided options with defaults
+const chartOptions = Object.keys(options).length > 0 ? options : defaultOptions;
+const serializedOptions = JSON.stringify(chartOptions);
+---
+
+<div id={chartId} style={`width: ${width}; height: ${height};`}></div>
+
+<script define:vars={{ chartOptions: serializedOptions, chartId }}>
+    // Load ECharts from CDN
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Load ECharts core
+        const echarts =
+            await import("https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.esm.min.js");
+
+        // Initialize chart
+        const chartContainer = document.getElementById(chartId);
+        const chart = echarts.init(chartContainer);
+
+        // Set chart options
+        const options = JSON.parse(chartOptions);
+        chart.setOption(options);
+
+        // Handle resize
+        window.addEventListener("resize", () => {
+            chart.resize();
+        });
+    });
+</script>

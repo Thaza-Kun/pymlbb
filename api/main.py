@@ -1,10 +1,11 @@
+import math
 from fastapi.responses import StreamingResponse
 import io
 from pathlib import Path
 from typing import List, Annotated
 
 from PIL import Image
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 
 
 from driver.sqlite import Sqlite
@@ -12,9 +13,12 @@ from driver.sqlite import Sqlite
 from resources.enums import fetch_heroes, Hero
 from resources.matchups import fetch_matchup_winrate_for, Matchup
 from resources.matchups import fetch_teamup_winrate_for, Teamup
+from resources.infobox import fetch_info_for_hero_with_users, Infobox
+from resources.winloss import fetch_sample_win_loss_data_for_against, WinlossAgainst
+from resources.winloss import fetch_poissonan_win_loss_for, WinlossHero
+
 from resources.normalizer import image_url_to_filename
 from graphs.winrate_vs_x import plot_win_pick
-from resources.infobox import fetch_info_for_hero_with_users, Infobox
 
 app = FastAPI()
 
@@ -26,6 +30,38 @@ async def get_sqlite():
 
 
 SqliteSession = Annotated[Sqlite, Depends(get_sqlite)]
+
+
+@app.get("/sample/winloss/{hero}/{against}")
+async def get_sample_hero_against_winloss(
+    db: SqliteSession, hero: str, against: str, matches: int = 10, samples: int = 10
+) -> list[WinlossAgainst]:
+    return await fetch_sample_win_loss_data_for_against(
+        db, hero, against, matches=matches
+    )
+
+
+@app.get("/distribution/poissonan/{hero}")
+async def get_poissonan_distribution_hero(
+    db: SqliteSession, hero: str, matches: int = 10
+) -> WinlossHero:
+    return await fetch_poissonan_win_loss_for(db, hero, matches=matches)
+
+
+@app.get("/pmf/poisson")
+def get_poissonnan_dist(winrate: float, matches: int):
+    if winrate < 0.0 or winrate > 1:
+        raise HTTPException(
+            status_code=422, detail="winrate must be between 0.0 and 1.0"
+        )
+    if matches < 0:
+        raise HTTPException(status_code=422, detail="matches must be >= 0")
+
+    def poisson(Lambda: float, k: int):
+        return Lambda ** (k) * math.exp(-Lambda) / math.factorial(k)
+
+    x = [*range(matches + 1)]
+    return {"P": [poisson(winrate * matches, k) for k in x], "x": x}
 
 
 @app.get("/list/heroes")
@@ -116,4 +152,4 @@ async def get_teamups_for(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Go to /docs for usage"}

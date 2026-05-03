@@ -1,5 +1,6 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
+import ChartsAstro from "./Charts.astro";
 
 export const prerender = false;
 
@@ -26,12 +27,33 @@ const infodata = await fetch(`${API_URL}/user/${user}/${HERO_NAME}`).then((d) =>
     d.json(),
 );
 const hero_data = heroes.filter((h) => h.name == HERO_NAME);
+const poisson_matches = Math.min(infodata.matches, 30);
+const poisson = await fetch(
+    `${API_URL}/pmf/poisson?matches=${poisson_matches}&winrate=${(infodata.winrate / 100).toFixed(4)}`,
+).then((d) => d.json());
+const poisson_value = await fetch(
+    `${API_URL}/distribution/poissonan/${HERO_NAME}?matches=${poisson_matches}&samples=10000`,
+)
+    .then((d) => d.json())
+    .then((d) => {
+        var poisson_dist_values = [];
+        for (const x of poisson.x) {
+            if (x in d.distribution) {
+                poisson_dist_values.push(d.distribution[x] / d.matches);
+            } else {
+                poisson_dist_values.push(0);
+            }
+        }
+        return poisson_dist_values;
+    });
 ---
 
 <Layout>
     <img src={hero_data[0].image} />
     <h1>
-        {`${HERO_NAME} (${infodata.winrate.toFixed(2)}%)`}
+        {
+            `${HERO_NAME} (${infodata.winrate.toFixed(2)}%) of ${infodata.matches} matches`
+        }
     </h1>
     <p>
         {
@@ -40,7 +62,7 @@ const hero_data = heroes.filter((h) => h.name == HERO_NAME);
                     .filter((i) => i.username == user)
                     .map(
                         (d) =>
-                            `(${d.hero_winrate.toFixed(2)} %/${d.winrate.toFixed(2)}% )`,
+                            `(${d.hero_winrate.toFixed(2)}% / ${d.winrate.toFixed(2)}% )`,
                     )
         }
     </p>
@@ -57,6 +79,33 @@ const hero_data = heroes.filter((h) => h.name == HERO_NAME);
         }
     </select>
     <br />
+    <ChartsAstro
+        options={{
+            title: {
+                text: "Poissonan Distribution of Wins",
+            },
+            xAxis: {
+                type: "category",
+                data: poisson.x,
+                name: "Matches",
+            },
+            yAxis: {
+                type: "value",
+                name: "Win percentage",
+            },
+            series: [
+                {
+                    data: poisson.P,
+                    type: "line",
+                    smooth: true,
+                },
+                {
+                    data: poisson_value,
+                    type: "bar",
+                },
+            ],
+        }}
+    />
 
     <img id="img-matchup" src={`data:image/jpeg;base64,${image_matchup}`} />
     <img id="img-teamup" src={`data:image/jpeg;base64,${image_teamup}`} />
