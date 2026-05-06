@@ -9,6 +9,7 @@ const API_URL = import.meta.env.API_URL;
 const { user, hero } = Astro.params;
 const HERO_NAME = hero;
 
+console.log(`${API_URL}/list/heroes`);
 const heroes_response = await fetch(`${API_URL}/list/heroes`);
 const heroes = await heroes_response.json();
 
@@ -20,7 +21,7 @@ const image_response = async (hero, path) =>
     await fetch(`${API_URL}/${path}/${hero}`)
         .then((i) => i.blob())
         .then((i) => i.bytes())
-        .then((i) => i.toBase64());
+        .then((i) => Buffer.from(i).toString("base64"));
 const image_matchup = await image_response(HERO_NAME, "matchup");
 const image_teamup = await image_response(HERO_NAME, "teamup");
 const infodata = await fetch(`${API_URL}/user/${user}/${HERO_NAME}`).then((d) =>
