@@ -1,0 +1,27 @@
+services:
+  api:
+    container_name: pymlbb-api
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    develop:
+      watch:
+        - path: ./api
+          action: sync
+          target: /
+    ports:
+      - "4320:4320"
+    volumes:
+      - "${MLBB_SQLITE}:/static/mlbb.sqlite"
+      - "${ASSET_PATH}:/asset"
+  webui:
+    container_name: pymlbb-webui
+    build:
+      context: .
+      dockerfile: ./website/Dockerfile
+    ports:
+      - "4321:4321"
+    environment:
+      API_URL: "http://api:4320"
+    depends_on:
+      - api

@@ -3,6 +3,8 @@
 node_modules/
 
 !.gitignore
+!compose.yml
+!Dockerfile
 !dashboard/
 !scraper/
 !api/
