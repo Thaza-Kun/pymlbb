@@ -27,6 +27,7 @@ const image_teamup = await image_response(HERO_NAME, "teamup");
 const infodata = await fetch(`${API_URL}/user/${user}/${HERO_NAME}`).then((d) =>
     d.json(),
 );
+console.log(infodata);
 const hero_data = heroes.filter((h) => h.name == HERO_NAME);
 const poisson_matches = Math.min(infodata.matches, 30);
 const poisson = await fetch(

@@ -16,6 +16,7 @@ from resources.matchups import fetch_teamup_winrate_for, Teamup
 from resources.infobox import fetch_info_for_hero_with_users, Infobox
 from resources.winloss import fetch_sample_win_loss_data_for_against, WinlossAgainst
 from resources.winloss import fetch_poissonan_win_loss_for, WinlossHero
+from resources.freshness import fetch_db_freshness, DbFreshness
 
 from resources.normalizer import image_url_to_filename
 from graphs.winrate_vs_x import plot_win_pick
@@ -71,7 +72,14 @@ async def list_heroes(db: SqliteSession) -> List[Hero]:
 
 @app.get("/user/{user}/{hero}")
 async def get_user_hero_info(db: SqliteSession, user: str, hero: str) -> Infobox:
-    return await fetch_info_for_hero_with_users(db, hero, [user])
+    data = await fetch_info_for_hero_with_users(db, hero, [user])
+    return data
+
+
+@app.get("/check/db")
+async def get_db_freshness(db: SqliteSession) -> DbFreshness:
+    data = await fetch_db_freshness(db)
+    return data
 
 
 HeroList = Annotated[List[Hero], Depends(list_heroes)]

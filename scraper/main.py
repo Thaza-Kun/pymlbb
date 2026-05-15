@@ -2,7 +2,6 @@ from urllib.parse import urlsplit
 import pathlib
 import argparse
 
-# from get_img import res
 import json
 import requests
 
@@ -55,10 +54,14 @@ def main(argument: argparse.Namespace):
             " before saving as HAR as it only works if only page_2 is in the HAR file"
         )
         for entry in page.entries:
+            if "battlereport/matches/recent" not in entry.request.url:
+                continue
             if entry.response.text == "":
                 continue
             content = json.loads(entry.response.text)
-            if content.get("data").get("sids") is not None:
+            if "data" not in content.keys() or not content.get("data"):
+                continue
+            if "result" not in content.get("data").keys():
                 continue
             for i, d in enumerate(content.get("data").get("result")):
                 s = MatchSummary(**d)
