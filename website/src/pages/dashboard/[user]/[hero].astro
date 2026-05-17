@@ -27,27 +27,29 @@ const image_teamup = await image_response(HERO_NAME, "teamup");
 const infodata = await fetch(`${API_URL}/user/${user}/${HERO_NAME}`).then((d) =>
     d.json(),
 );
-console.log(infodata);
+const winrate_per_hour = await fetch(`${API_URL}/user/${user}`).then((d) =>
+    d.json(),
+);
 const hero_data = heroes.filter((h) => h.name == HERO_NAME);
-const poisson_matches = Math.min(infodata.matches, 30);
-const poisson = await fetch(
-    `${API_URL}/pmf/poisson?matches=${poisson_matches}&winrate=${(infodata.winrate / 100).toFixed(4)}`,
-).then((d) => d.json());
-const poisson_value = await fetch(
-    `${API_URL}/distribution/poissonan/${HERO_NAME}?matches=${poisson_matches}&samples=10000`,
-)
-    .then((d) => d.json())
-    .then((d) => {
-        var poisson_dist_values = [];
-        for (const x of poisson.x) {
-            if (x in d.distribution) {
-                poisson_dist_values.push(d.distribution[x] / d.matches);
-            } else {
-                poisson_dist_values.push(0);
-            }
-        }
-        return poisson_dist_values;
-    });
+// const poisson_matches = Math.min(infodata.matches, 30);
+// const poisson = await fetch(
+//     `${API_URL}/pmf/poisson?matches=${poisson_matches}&winrate=${(infodata.winrate / 100).toFixed(4)}`,
+// ).then((d) => d.json());
+// const poisson_value = await fetch(
+//     `${API_URL}/distribution/poissonan/${HERO_NAME}?matches=${poisson_matches}&samples=10000`,
+// )
+//     .then((d) => d.json())
+//     .then((d) => {
+//         var poisson_dist_values = [];
+//         for (const x of poisson.x) {
+//             if (x in d.distribution) {
+//                 poisson_dist_values.push(d.distribution[x] / d.matches);
+//             } else {
+//                 poisson_dist_values.push(0);
+//             }
+//         }
+//         return poisson_dist_values;
+//     });
 ---
 
 <Layout>
@@ -84,11 +86,11 @@ const poisson_value = await fetch(
     <ChartsAstro
         options={{
             title: {
-                text: "Poissonan Distribution of Wins",
+                text: "Winrate Distribution per Hour",
             },
             xAxis: {
                 type: "category",
-                data: poisson.x,
+                data: winrate_per_hour.map((x) => x.hour_of_day),
                 name: "Matches",
             },
             yAxis: {
@@ -97,12 +99,7 @@ const poisson_value = await fetch(
             },
             series: [
                 {
-                    data: poisson.P,
-                    type: "line",
-                    smooth: true,
-                },
-                {
-                    data: poisson_value,
+                    data: winrate_per_hour.map((x) => x.winrate),
                     type: "bar",
                 },
             ],

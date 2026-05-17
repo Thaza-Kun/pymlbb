@@ -17,6 +17,7 @@ from resources.infobox import fetch_info_for_hero_with_users, Infobox
 from resources.winloss import fetch_sample_win_loss_data_for_against, WinlossAgainst
 from resources.winloss import fetch_poissonan_win_loss_for, WinlossHero
 from resources.freshness import fetch_db_freshness, DbFreshness
+from resources.statistics import fetch_winrate_per_hour_for, WinratePerHour
 
 from resources.normalizer import image_url_to_filename
 from graphs.winrate_vs_x import plot_win_pick
@@ -73,6 +74,14 @@ async def list_heroes(db: SqliteSession) -> List[Hero]:
 @app.get("/user/{user}/{hero}")
 async def get_user_hero_info(db: SqliteSession, user: str, hero: str) -> Infobox:
     data = await fetch_info_for_hero_with_users(db, hero, [user])
+    return data
+
+
+@app.get("/user/{user}")
+async def get_winrate_per_hour_for(
+    db: SqliteSession, user: str
+) -> list[WinratePerHour]:
+    data = await fetch_winrate_per_hour_for(db, user)
     return data
 
 
